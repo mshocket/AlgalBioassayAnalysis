@@ -347,6 +347,8 @@ As this means plotting additional data (not just `lnChlaMean` and `Day`, well ne
 
 This function has arguments for `ymax` and `ymin` to give the height of the error bars above and below the data points, and `width` to give the width of the error bars.
 
+Now that we're finished, we'll also save the file in our Figures folder.
+
 ```{r plotWindN3}
 
 fig_WindN3 <- AB_data_summary %>% 
@@ -358,6 +360,10 @@ fig_WindN3 <- AB_data_summary %>%
 	labs(y = expression(paste("ln Chlorophyll (", mu, "g/L)")), x = "Time (days)", title = "Windermere North") +
 	theme_minimal()
 print(fig_WindN3)
+
+# Save the final version of the figure in the Figures folder
+	# The width and height are given in inches
+ggsave("../Figures/FigWindN.jpeg", width = 6, height = 4)
 
 ```
 
@@ -403,7 +409,7 @@ Otherwise you'll just print the old plot for Windermere North 4 times in a row.
 
 If you don't like the default colours that ggplot uses, you can change them.
 
-Simply make a new line and add the command: `scale_colour_manual(values = c("#990000", "blue", "green", "purple")) +`. (I suggest between `labs()` and `theme_minimal()`.)
+Go back to the code chunk for your final figure. Make a new line and add the command: `scale_colour_manual(values = c("#990000", "blue", "green", "purple")) +`. (I suggest between `labs()` and `theme_minimal()`.)
 
 Then play around and substitute your colours of choice for the values that I included above.
 
