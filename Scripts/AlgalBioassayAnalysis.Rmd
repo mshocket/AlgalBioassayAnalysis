@@ -10,19 +10,23 @@ output:
 ---
 # Introduction
 
-This document contains all the information that you need to be able to complete the statistical analysis and make the figures for the LEC 143 lab report. This workshop may seem daunting and you may not be able to absorb everything while we are going through it together during the session. If that is the case, it is not a problem, do not worry.
+This document contains all the information that you need to complete the statistical analysis and make the figures for the LEC 143 scientific paper assignment. This workshop may seem daunting and you may not be able to absorb everything while we are going through it together during the session. If that is the case, it is not a problem, do not worry.
 
 First, this document is designed to be a reference sheet that you can refer back to after the session.
 
-Second, you are not expected to be able to write your own code from scratch after one workshop This document provides templates for all of the code that you need. You will be simply be following along, running the provided code, and making some minor modifications at the end.
+Second, you are not expected to be able to write your own code, or understand all of the intricacies of the code you are using.
+
+This document provides templates for all of the code that you need. You will be simply be following along, running the provided code, and making some minor modifications at the end.
+
+There are detailed explanations of the code for students who want to learn more about how it works, but this material is not required for the module.
 
 The goals of this practical are:
 
 1. Become familiar with basic concepts and processes used for coding statistical analyses in R.
-2. Create the figure and perform the statistical tests for one lake.
-3. Learn how to modify the provided code to apply it to the other three lakes.
+2. Create the figure and perform the statistical tests for one lake basin.
+3. Learn how to modify the provided code to apply it to the other three lakes basins.
 
-## How to Code
+## How to Work with Code
 
 Beginning coders are often under the impression that more advanced programmers have all of the commands they need memorized and write everything out perfectly the first time. In fact, nothing could be farther from the truth.
 
@@ -86,14 +90,16 @@ Preparing the data for an analysis is an underrated step in science. It's very i
 
 The chunk below is where we load the package that we need for our analysis.
 
-A package is a set of functions that are not part of the basic R installation but can be added on later. Packages can be written by anybody and range from extremely large, complex, general packages maintained by dozens of contributors to very small packages written by one person for a specific purpose.
+A package is a set of functions that are not part of the basic R installation but can be added on later. Packages can be written by anybody and range from extremely large, complex, general packages maintained by dozens of contributors to small packages written by one person for a specific purpose.
 
 The package we're using is called `tidyverse`, which is actually a collection of many packages. You can load the specific packages individually, or all together with one command as the tidyverse.  Specifically, we will be using these two packages:
 
 1. `dplyr` - a package for wrangling and manipulating data
 2. `ggplot2` - a package for plotting figures
 
-Within a code chunk, **comments** are used to explain what the code does, and are denoted with a hash sign (`#`). This way R knows not to run them as code. It's always a good idea to comment your code as you work, so that if you come back to the code later or share it with someone else, it's (hopefully) clear what you did and why. 
+Within a code chunk, **comments** are used to explain what the code does, and are denoted with a hash sign (`#`). This way R knows not to run them as code.
+
+It's always a good idea to comment your code as you work, so that if you come back to the code later or share it with someone else, it's (hopefully) clear what you did and why. 
 
 ```{r setup, message=FALSE}
 
@@ -147,7 +153,7 @@ Functions that take multiple arguments assign them to specific settings using th
 
 A few other notes for understanding the code below:
 
-- Tidyverse code uses the "**pipe**" operator: `%>%`. This operator passes a data object to the next function in the code as the first argument. The shortcut to type it is `ctrl + shift + m`.
+- Tidyverse code uses the "**pipe**" operator: `%>%`. This operator passes a data variable to the next function in the code as the first argument. The shortcut to type it is `ctrl + shift + m`.
 - To refer to multiple variables as a single unit, we need to create a vector grouping them together. In R, we create vectors with the small letter `c` followed by a set of parentheses, and each object inside separated by a comma: `c(x, y, z)`.
 - For existing objects, we can simply use their name to refer to them. However, to create a new variable (or other character-based data), we must use quotation marks to indicate that it is a string of characters rather than a reference to an existing object.
 
@@ -173,6 +179,8 @@ This output actually highlights a problem with two of our data types, which we'l
 ## Transform the Data
 
 In this section, you'll learn two different ways to transform data. There are often multiple ways to accomplish a given task when coding. This is particularly true in R, because there is usually a base R way and a tidyverse way.
+
+In general, tidyverse methods are very powerful and can simplify the code needed for complex tasks, while base R methods are easier to understand and use for simple tasks.
 
 We'll use both methods (base R and tidyverse) to:
 
@@ -233,7 +241,7 @@ AB_data_long$ChlaL <- AB_data_long$Chla*1000
 
 Similarly, in tidyverse `mutate()` will create a new column if you give it a new name so it's not overwriting an old one.
 
-We'll use this method to log-transform our fluorescence data, because algae are single celled organisms that grow exponentially. In biology, exponential data is often log-transformed so it will look like a line when plotted in linear space.
+We'll use this method to log-transform our fluorescence data, because algae are single celled organisms that grow exponentially. In biology, exponential data is often log-transformed so it will look like a line when plotted in linear space (i.e., a standard graph like you are used to).
 
 In R, the `log()` function uses base $e$ (the natural logarithm) as the default setting (which is what we want).
 
@@ -247,7 +255,7 @@ AB_data_long <- AB_data_long %>%
 
 ### Replace infinite values with zero
 
-Now we have a new problem: log-transformation doesn't work for zero values. It gives the value negative infinity (`-Inf` in R), which will mess up our plotting later. So we'll need to replace those values (in all of our Day 0 observations) with zeros.
+Now we have a new problem: we started with fluorescence values that were below the detection limit of our fluorometer and log-transformation doesn't work for zero values. It gives the value negative infinity (`-Inf` in R), which will mess up our plotting later. We'll need to replace those values (in all of our Day 0 observations) with zeros.
 
 The code below shows how to replace infinite values with 0 using both base R and tidyverse methods. Both methods use the function `is.infinite()` to determine which rows have infinite values.
 
@@ -288,11 +296,11 @@ The tidyverse function for basic plotting is called `ggplot2()`. It works by fir
 
 We'll start with a very simple figure, and slowly build up complexity to get the figure that we want for the lab report. This will help you get familiar with the general coding syntax.
 
-We'll use this process to make one finished plot for Windermere North. Then you can use that code as a template to create plots for the other three lakes. 
+We'll use this process to make one finished plot for Windermere North. Then you can use that code as a template to create plots for the other three lake basins. 
 
 ## Plot for Windermere North
 
-Here's a very basic plot of all the summarised data points for all four lakes.
+Here's a very basic plot of all the summarised data points for all four lake basins.
 
 ```{r plotbasic}
 
@@ -302,7 +310,7 @@ print(fig_basic) # Print the plot
 
 ```
 
-However, for the figures for the lab report, we'll want to plot each lake separately.
+However, for the figures for the lab report, we'll want to plot each lake basin separately.
 
 This means we need to use the `filter()` function from dplyr to subset our data, and then feed that smaller data frame into ggplot using the pipe operator (`%>%`).
 
@@ -326,7 +334,7 @@ We'll also make a couple other changes to improve the way it looks:
 - Add an argument to `geom_point()` to make the points bigger so they stand out more.
 - Change the theme from the default one to `theme_minimal` to make the background white.
 - Add better axis labels with units. The expression(paste()) functions will allow us to print the greek letter $\mu$.
-- Add a title showing which lake the figure corresponds to.
+- Add a title showing which lake basin the figure corresponds to.
 
 ```{r plotWindN2}
 
@@ -363,27 +371,27 @@ print(fig_WindN3)
 
 # Save the final version of the figure in the Figures folder
 	# The width and height are given in inches
-ggsave("../Figures/FigWindN.jpeg", width = 6, height = 4)
+ggsave("../Figures/Fig_WindN.jpeg", width = 6, height = 4)
 
 ```
 
-## Plots for other lakes
+## Plots for other lake basins
 
-Now that we have a finished figure for Windermere North, you'll need make plots for the other three lakes (Windermere South, Esthwaite, and Elterwater).
+Now that we have a finished figure for Windermere North, you'll need make plots for the other three lake basins (Windermere South, Esthwaite, and Elterwater).
 
 There are some empty code chunks below for you to use.
 
 Highlight the code from the previous chunk (`plotWindN3`), and then copy and paste it into each of the chunks below.
 
-There are 4 things that you'll need to change in each chunk to adapt the code for the other lakes.
+There are 4 things that you'll need to change in each chunk to adapt the code for the other lake basins.
 
 1. Change the argument for `filter()` that subsets the data.
 
-On the 2nd line, where it says `filter(Lake == "Windermere_North")`, you need to change the character string that specifies the lake. Remember that it needs to match the data frame **exactly**. You can use the environment tab to check how each lake name is spelled and formatted, or type the command `levels(AB_data_long$Lake)` into the console. The `levels()` function tells you all the levels that exist for a factor in a data frame. 
+On the 2nd line, where it says `filter(Lake == "Windermere_North")`, you need to change the character string that specifies the lake basin. Remember that it needs to match the data frame **exactly**. You can use the environment tab to check how each lake basin name is spelled and formatted, or type the command `levels(AB_data_long$Lake)` into the console. The `levels()` function tells you all the levels that exist for a factor in a data frame. 
 
 2. Change the title of the plot
 
-On the 7th line, where it says `labs( ... , title = "Windermere North")`, you need to change the character string for each lake. This time you want to format it so the text is nice to read.
+On the 7th line, where it says `labs( ... , title = "Windermere North")`, you need to change the character string for each lake basin. This time you want to format it so the text is nice to read.
 
 3. Change the name of the plot.
 
@@ -430,7 +438,7 @@ We're going to perform a statistical test called an ANOVA, which stands for ANal
 Some important notes how to run the ANOVA tests and which data to use:
 
 - Like all statistical tests, ANOVA must be performed using the individual observations (not the summarized data that we used to make the graphs).
-- Our question - which nutrient is limiting - is answered by comparing the treatments for a given lake, so we'll run a separate test for each lake.
+- Our question - which nutrient is limiting - is answered by comparing the treatments for a given lake basin, so we'll run a separate test for each lake basin.
 - We're interested in comparing the overall amount of algal growth between the four treatments, so we'll only be using the data from final Day (21).
 
 This means we'll need to make different copies of our data frame that only contain the specific subsets of the data that we need to run each test.
@@ -451,7 +459,7 @@ Additionally, most programming languages have "and" and "or" operators that allo
 
 ```{r subsetdata}
 
-# Save subsets of your data with observations from Day 21 for each lake
+# Save subsets of your data with observations from Day 21 for each lake basin
 AB_data_Day21Elter <- subset(x = AB_data_long, Day == 21 & Lake == "Elterwater")
 AB_data_Day21Esthw <- subset(x = AB_data_long, Day == 21 & Lake == "Esthwaite")
 AB_data_Day21WindN <- subset(x = AB_data_long, Day == 21 & Lake == "Windermere_North")
@@ -469,13 +477,13 @@ To run a statistical test in R, you need to specify the model formula using math
 
 ```{r ANOVAtest}
 
-# Perform the ANOVA test and save the output for each lake
+# Perform the ANOVA test and save the output for each lake basin
 AB_ANOVA_Elter <- aov(formula = lnChlaL ~ Treatment, data = AB_data_Day21Elter)
 AB_ANOVA_Esthw <- aov(formula = lnChlaL ~ Treatment, data = AB_data_Day21Esthw)
 AB_ANOVA_WindN <- aov(formula = lnChlaL ~ Treatment, data = AB_data_Day21WindN)
 AB_ANOVA_WindS <- aov(formula = lnChlaL ~ Treatment, data = AB_data_Day21WindS)
 
-# Examine the output for each lake using the summary() function
+# Examine the output for each lake basin using the summary() function
 summary(AB_ANOVA_Elter)
 summary(AB_ANOVA_Esthw)
 summary(AB_ANOVA_WindN)
@@ -487,17 +495,17 @@ summary(AB_ANOVA_WindS)
 
 Now we need to perform Post-hoc Tukey tests to figure out which treatments were significantly different from each other.
 
-**IMPORTANT** - We will only perform the Tukey post-hoc test for the lakes that had a significant result from the ANOVA test.
+**IMPORTANT** - We will only perform the Tukey post-hoc test for the lake basins that had a significant result from the ANOVA test.
 
 In R, the Tukey test is performed directly on the saved ANOVA results.
 
 ```{r TukeyHSD}
 
-# Perform the Tukey Post Hoc test for the lakes with significant ANOVA results
+# Perform the Tukey Post Hoc test for the lake basins with significant ANOVA results
 AB_TPH_WindN <- TukeyHSD(AB_ANOVA_WindN)
 AB_TPH_WindS <- TukeyHSD(AB_ANOVA_WindS)
 
-# Examine the output for both lakes
+# Examine the output for both lake basins
 AB_TPH_WindN
 AB_TPH_WindS
 
