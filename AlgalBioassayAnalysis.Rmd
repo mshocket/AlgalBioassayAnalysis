@@ -1,0 +1,517 @@
+---
+title: "LEC 143 Algal Bioassay Analysis"
+author: "Dr. Marta Shocket"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    number_sections: true
+---
+# Introduction
+
+This document contains all the information that you need to complete the statistical analysis and make the figures for the LEC 143 scientific paper assignment. You may not be able to absorb everything while we are going through it together during the session. If that is the case: DON'T PANIC. It is not a problem.
+
+First, this document is designed to be a reference sheet that you can refer back to after the session.
+
+Second, you are not expected to be able to write your own code, or understand all of the intricacies of the code you are using.
+
+This document provides templates for all of the code that you need. You will be simply be following along, running the provided code, and making some minor modifications at the end.
+
+There *are* detailed explanations of the code for students who want to learn more about how it works, but this material is not required for the module.
+
+The goals of this practical are:
+
+1. Become familiar with basic concepts and processes used for coding statistical analyses in R.
+2. Create the figure and perform the statistical tests for one lake basin.
+3. Learn how to modify the provided code to apply it to the other three lakes basins.
+
+## How to Work with Code
+
+Beginning coders are often under the impression that more advanced programmers have all of the commands they need memorized and write everything out perfectly the first time. In fact, nothing could be farther from the truth.
+
+The two most important skills you need to be a successful coder are:
+
+1. Looking things up as you code them (either online or in help files) 
+2. Debugging your code when it doesn't work
+
+These skills are key parts of the coding process, no matter how advanced you become. Embrace them.
+
+## Introduction to R, RStudio, and R Markdown
+
+**R** is a free, open-source programming language designed for statistical computing and graphics. It is the most commonly used tool for statistical analysis in ecology. 
+
+**RStudio** is a free, open-source Integrated Development Environment (IDE) that makes coding in R much easier.
+
+This practical is written as an **R Markdown** document, which uses the `.Rmd` file extension. Markdown is a simple formatting system for authoring HTML, PDF, and MS Word documents.
+
+The RStudio window is divided into four quadrants:
+
+- *Top left*: Code files - where you can see and edit your saved code files (called "**scripts**"), including this R markdown document. Some types of data can also be viewed here.
+- *Bottom left*: `Console` - where you can input commands and see code that has been run. This is also where text-based output gets printed if you are using a regular R script instead of an R markdown file.
+- *Top right*: `Environment` - where you can see the saved data objects in your current R workspace.
+- *Bottom right*: `Help` - where you can look up documentation about specific commands. There is also a `Plots` tab where  image-based output appears if you are using a regular R script instead of an R markdown file.
+
+An R markdown document has alternating code "chunks" (in grey) and text (in white). To run the code within a chunk, hit the **green triangle** "play button" in the top right corner of the chunk. The output (both text-based and image-based) for a chunk will appear directly below it.
+
+When you click the `Knit` button at the top of the script file, a document will be generated that includes the text content, code chunks, and any output generated from the code.
+
+## Introduction to Coding in R
+
+Four essential building blocks of any coding language are:
+
+1. operators
+2. variables
+3. functions
+4. arguments
+
+**Operators** are typically 1 or 2 character commands that correspond to very simple, common tasks. For instance, all of the basic mathematical symbols are operators in most programming languages (e.g., `+` (addition), `-` (subtraction), `*` (multiplication), and `/` (division). You can use operators in R to calculate basic maths.
+
+* The input `53 + 54` will give the output `107`.
+
+Data can be saved as named **variables**, which allows you to refer to and use them later. You can think of variables as analogous to nouns. From this point forward, I will refer to these saved "variables" as "objects". This is not the correct term according to computer science, but I want to be able to use "variable" in the biology / statistics sense of the word without being confusing.
+
+* In R, we use the arrow operator `<-` to save objects.
+* We can save the output from our command above using the code: `total_students <- 53 + 54`.
+* Now whenever we use the object `total_students`, R will substitute the value `107`. 
+
+**Functions** are the commands that tell the program to do something. You can think of them as the verbs of a programming language. Functions are always followed by a set of parentheses.
+
+* The function `getwd()` will provide your current working directory (the default location where R will read and save files).
+
+Most functions also take inputs called **arguments** that go inside the parentheses. Arguments are generally either:
+
+1) Data to process
+2) Settings that tell the function how to process the data
+
+* The function `sqrt(x)` takes one argument, `x`, and calculates its square root. So `sqrt(4)` will return the value `2`. 
+
+Now let's get started with our analysis!
+
+# Prepare the Data
+
+## Set-up
+
+```{r knitsetup, echo = FALSE}
+
+# This chunk is where we tell R Studio to print the code itself (not just the text and code output) when it knits the document. It's written in Markdown not R, so it looks pretty different to everything else that follows, which is why it's hidden using the "echo = FALSE" command above. 
+
+# This command tells R to print the code when it knits the document (unless a specific chunk has a different command, like this one)
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+The chunk below is where we load the package that we need for our analysis.
+
+A package is a set of extra functions that are not part of the basic R installation but can be added on later. You can think of them like apps that enhance R.
+
+The package we're using is called `tidyverse`, which is actually a collection of many packages. You can load the specific packages individually, or all together with one command as the tidyverse.  Specifically, we will be using these two packages:
+
+1. `dplyr` - a package for wrangling and manipulating data
+2. `ggplot2` - a package for plotting figures
+
+Within a code chunk, **comments** are used to explain what the code does, and are denoted with a hash sign (`#`). This way R knows not to run them as code.
+
+It's always a good idea to comment your code as you work, so that if you come back to the code later or share it with someone else, it's (hopefully) clear what you did and why. 
+
+```{r setup, message=FALSE}
+
+# The library() function loads packages
+library(tidyverse)
+
+```
+
+## Load the data
+
+Now we need to load the data from our algal bioassay experiment. The data are in a comma separated values (`.csv`) file. The code below reads the csv file and saves it as a data frame object called `AB_data.`
+
+A **data frame** is a specific type of object in R that has observations (rows) of variables (columns). Each column has a name and the rows are numbered sequentially.
+
+
+```{r loaddata}
+
+# Read in the data
+AB_data <- read.csv("AlgalBioassay_data_forR_long.csv")
+
+```
+
+After you load the data, you should see it pop up in the `Environment` panel in the top right quadrant of your R Studio window. The panel will display the basic structure of the data object. In this case `AB_data` has 592 observations of 4 variables.
+
+It's often very helpful to actually look at your data frame as you are writing code and debugging. 
+
+There are two different ways to examine data from inside `Environment` panel:
+
+1. Click on the blue circle with the white triangle by the name of the data frame (`AB_data`) to see a preview of all columns and the first few rows.
+2. Click on the name of the data frame to open it up as a tab in the script files panel.
+
+You can also view the first six rows of data using the `head()` function.
+
+```{r viewdata}
+
+# Display the first 6 rows
+head(AB_data)
+
+```
+
+## Transform the Data
+
+In this section, you'll learn two different ways to transform data.
+
+There are often multiple ways to accomplish a given task when coding. This is particularly true in R, because there is usually a base R way and a tidyverse way.
+
+In general, tidyverse methods are very powerful and can simplify the code needed for complex tasks, while base R methods are easier to understand and use for simple tasks.
+
+We'll use both methods (base R and tidyverse) to create new variables from existing ones.
+
+In R, many operations and functions can be performed on objects with multiple kinds of data structures. For instance, `a <- 2*b` will work on any numerical variable `b`, regardless of what structure it is - `b` could be a single number, a vector of many numbers, or even a 2-dimensional matrix of numbers. The output (`a`) will simply be the same structure as the input (`b`).
+
+This is extremely convenient for performing the same calculation on entire columns or matrices, and is one of the reasons why coding is more powerful than performing calculations by hand in a spreadsheet like Excel or Google Sheets.
+
+### Convert units using the base R method
+
+In base R, you refer to a specific column in a data frame using the `$` symbol. For instance, our fluorescence observations are now in the column `AB_data$Chla`. 
+
+To transform the data in a column, use a mathematical operator or function on the entire column and save it with the assignment operator ( `<-`). If you assign it to the same name, you will overwrite the old column with the new data. If you use a new name, you will create a new column instead.
+
+We'll convert our fluorescence data from $\mu g/mL$ to $\mu g/L$ using the base R method first. It will create a new column because a column called `ChlaL` doesn't exist yet. 
+
+```{r chlaunitconversion_baseR}
+
+# Use the base R method to create a new variable with units converted from ug/mL to ug/L
+AB_data$ChlaL <- AB_data$Chla*1000
+
+```
+
+### Convert units using the tidyverse method
+
+In tidyverse R, you transform variables using the `mutate()` function and an equal sign. Like with base R, `mutate()` will overwrite your old data if you use the name of an existing column, or create a new column if you give it a new name.
+
+Tidyverse code also uses the "**pipe**" operator: `|>`. This operator passes data to the next function in the code to use as its first argument.
+
+(NOTE: Until 2023 the pipe operator was `|>`, so you will probably see that notation if you look up code online.)
+
+Now we'll convert our fluorescence data from $\mu g/mL$ to $\mu g/L$ again using the tidyverse R method. It will overwrite our old column with a new (identical) one, since the column already exists this time.
+
+```{r chlaunitconversion_tidyverse}
+
+# Use the tidyverse R method to create a new variable with units converted from ug/mL to ug/L
+    # The first line saves our output and passes our input data down to the next command
+    # The second line transforms the input data based on the mathematical operator
+AB_data <- AB_data |>
+	mutate(ChlaL = Chla*1000)
+
+```
+
+### Log-transform using both methods
+
+We need to log-transform our fluorescence data, because algae are single celled organisms that grow exponentially. In biology, exponential data is often log-transformed so it will look like a line when plotted in linear space (i.e., a standard graph like you are used to).
+
+In R, the `log()` function uses base $e$ (the natural logarithm) as the default setting (which is what we want).
+
+The code below shows how to log transform the fluorescence data using both base R and tidyverse methods.
+
+```{r chlalogtransform}
+
+# Use the base R method to log-transform the data
+AB_data$lnChlaL <- log(AB_data$ChlaL)
+
+# Use the tidyverse method to log-transform the data
+AB_data2 <- AB_data |>
+	mutate(lnChlaL = log(ChlaL))
+
+```
+
+### Replace infinite values with zero using both methods
+
+Now we have a new problem: we started with fluorescence values that were below the detection limit of our fluorometer and log-transformation doesn't work for zero values. It gives the value negative infinity (`-Inf` in R), which will mess up our plotting later. We'll need to replace those values (in all of our Day 0 observations) with zeros.
+
+The code below shows how to replace infinite values with 0 using both methods.
+
+Both methods use the function `is.infinite()` to determine which rows have infinite values.
+
+The tidyverse method uses the `replace()` function, while the base R method uses the `which()` function and square brackets `[]` to refer to specific rows.
+
+```{r replaceinfinitevalues}
+
+# Use the base R method to replace -Inf values with 0
+	# Square brackets allow you to refer to specific cells/rows/columns in general, and which() allows you to select only on those cells that match a certain criteria (in this case, contain infinite values)
+AB_data$lnChlaL[which(is.infinite(AB_data$lnChlaL))] <- 0
+
+# Use the tidyverse method to replace -Inf values with 0
+AB_data <- AB_data |> 
+	mutate(lnChlaL = replace(lnChlaL, is.infinite(lnChlaL), 0))
+
+```
+
+## Summarise the Data
+
+We'll want to make our graphs using summarised versions of our data (means and standard errors), not the individual observations.
+
+This task is most easily done using the tidyverse function `summarise()`. This function will perform any mathematical calculation over different groupings of your data. We'll want to group by `Lake`, `Treatment`, and `Day`, so we can get the mean and standard error for each combination of those three variables.
+
+The formulate for standard error is is standard deviation (`sd()`) divided by the square root of the number of observations. We have 12 observations for each combination of lake, treatment, and day.
+
+```{r summarisedata}
+
+# Summarise the data
+AB_data_summary <- AB_data |> 
+	group_by(Lake, Treatment, Day) |> 
+	summarise(lnChlaMean = mean(lnChlaL),
+	          lnChlaSE = sd(lnChlaL)/sqrt(12)) |> 
+	ungroup()
+
+# Print the table of summarised data
+AB_data_summary
+
+```
+
+# Plot the Data
+
+The tidyverse function for basic plotting is called `ggplot2()`. After you pipe in your data, `ggplot()` first creates a plotting "aesthetic" (`aes()`) that specifies which variables you want to plot, then layers the actual points, lines, labels, etc. on top of the aesthetic. Each layer is separated by a `+` sign. There are lots of line breaks to make it easier to read. 
+
+We'll start with a very simple figure, and slowly build up complexity to get the figure that we want for the lab report. This will help you get gradually familiar with the general coding format.
+
+We'll use this process to make one finished plot for Windermere North. Then you can use that code as a template to create plots for the other three lake basins. 
+
+## Plot for Windermere North
+
+Here's a very basic plot of all the summarised data points for all four lake basins.
+
+```{r plotbasic}
+
+fig_basic <- AB_data_summary |> # Assign the plot name and specify the data to pipe down
+  ggplot(aes(x = Day, y = lnChlaMean)) + # Create the plot aesthetic with Chlorophyll over time 
+	geom_point() # Add a layer with points
+print(fig_basic) # Print the plot
+
+```
+
+However, for the figures for the lab report, we'll want to plot each lake basin separately.
+
+This means we need to use the `filter()` function from dplyr to subset our data by telling R to which data to include and which to exclude based on the relevant criteria. Then we'll feed that smaller data frame into `ggplot()` using the pipe operator (`|>`).
+
+In almost all programming languages, one equal sign (`=`) is used to assign values (like we do with arguments in R) and two equal signs (`==`) are used to test if two things are equal. Try typing the following text into the console and see what happens:
+
+- `2 == 2`
+- `2 == 3`
+- `2 = 3`
+
+We'll also want to color code the points and lines by treatment, so we can tell them apart. ggplot will automatically make a legend showing which color belongs to which treatment.
+
+
+```{r plotWindN1}
+
+fig_WindN1 <- AB_data_summary |> # Assign the plot name and specify the data to pipe down
+	filter(Lake == "Windermere_North") |> # Filter the data for Windermere North only and pipe it down again
+	ggplot(aes(x = Day, y = lnChlaMean, colour = Treatment)) + # Create the aesthetic with treatments plotted as colours
+	geom_point()
+print(fig_WindN1)
+
+```
+
+We want lines between our points, so we'll add another layer.
+
+We'll also make a couple other changes to improve the way it looks:
+
+- Add an argument to `geom_point()` to make the points bigger so they stand out more.
+- Change the theme from the default one to `theme_minimal` to make the background white.
+- Add better axis labels with units. The expression(paste()) functions will allow us to print the greek letter $\mu$.
+- Add a title showing which lake basin the figure corresponds to.
+
+```{r plotWindN2}
+
+fig_WindN2 <- AB_data_summary |>
+	filter(Lake == "Windermere_North") |>
+	ggplot(aes(x = Day, y = lnChlaMean, colour = Treatment)) +
+	geom_point(size = 3) + # Make the points bigger this time
+	geom_line() + # Add a lines layer
+	labs(y = expression(paste("ln Chlorophyll (", mu, "g/L)")),
+	     x = "Time (days)",
+	     title = "Windermere North"
+	     ) + # Change the axis labels and add a title
+	theme_minimal() # Change the background colour via the theme
+print(fig_WindN2)
+
+```
+
+The last important step is to add in error bars showing the standard error.
+
+As this means plotting additional data (not just `lnChlaMean` and `Day`, well need to create a new aesthetic in the geomerrorbar() function.
+
+This function has arguments for `ymax` and `ymin` to give the height of the error bars above and below the data points, and `width` to give the width of the error bars.
+
+Now that we're finished, we'll also save the file in our Figures folder.
+
+```{r plotWindN3}
+
+fig_WindN3 <- AB_data_summary |> 
+	filter(Lake == "Windermere_North") |>
+	ggplot(aes(x = Day, y = lnChlaMean, colour = Treatment)) +
+	geom_point(size = 3) +
+	geom_line() +
+	geom_errorbar(aes(ymin = lnChlaMean - lnChlaSE,
+	                  ymax = lnChlaMean + lnChlaSE),
+	                  width = 0.75) + # Add the error bars layer
+	labs(y = expression(paste("ln Chlorophyll (", mu, "g/L)")),
+	     x = "Time (days)",
+	     title = "Windermere North") +
+	theme_minimal()
+print(fig_WindN3)
+
+# Save the final version of the figure in the Figures folder
+  	# The width and height are given in inches
+ggsave("../Figures/Fig_WindN.jpeg", width = 6, height = 4)
+
+```
+
+## Plots for other lake basins
+
+Now that we have a finished figure for Windermere North, you'll need make plots for the other three lake basins (Windermere South, Esthwaite, and Elterwater).
+
+There are some empty code chunks below for you to use.
+
+Highlight the code from the previous chunk (`plotWindN3`), and then copy and paste it into each of the chunks below.
+
+There are 4 things that you'll need to change in each chunk to adapt the code for the other lake basins.
+
+1. Change the argument for `filter()` that subsets the data.
+
+On the 2nd line, where it says `filter(Lake == "Windermere_North")`, you need to change the character string that specifies the lake basin. Remember that it needs to match the data frame **exactly**. You can use the environment tab to check how each lake basin name is spelled and formatted, or type the command `levels(AB_data$Lake)` into the console. The `levels()` function tells you all the levels that exist for a factor in a data frame. 
+
+2. Change the title of the plot
+
+On the 7th line, where it says `labs( ... , title = "Windermere North")`, you need to change the character string for each lake basin. This time you want to format it so the text is nice to read.
+
+3. Change the name of the plot.
+
+On the 1st line, where it says `fig_WindN3 <- AB_data_summary |>`, you need to change the name to something different. I would recommend using the suffixes `WindS`, `Esthw`, and `Elter`, which all have 5 letters like `WindN`. It's very helpful to be consistent with your naming conventions.
+
+4. Change the final `print()` command to match the new plot names from #3.
+
+Otherwise you'll just print the old plot for Windermere North 4 times in a row. 
+
+```{r plotWindS}
+
+```
+
+```{r plotEsthwaite}
+
+```
+
+```{r plotElterwater}
+
+```
+
+# Statistical Analysis
+
+## ANOVA test
+
+### About ANOVA
+
+We're going to perform a statistical test called an ANOVA, which stands for ANalysis Of VAriance.
+
+ANOVA tests are used when you have a predictor variable that is categorical (in our case, the nutrient addition treatments) and you have more than 2 categories (we have four: Control, N, P, and NP).
+
+An ANOVA test will tell you if there are significant differences in your response variable based on the predictor variable categories, but it won't tell you which specific categories are different from each other.
+
+Some important notes how to run the ANOVA tests and which data to use:
+
+- Like all statistical tests, ANOVA must be performed using all the replicated observations (not the summarized data that we used to make the graphs).
+- Our question - which nutrient is limiting - is answered by comparing the treatments for a given lake basin, so we'll run a separate test for each lake basin.
+- We're interested in comparing the overall amount of algal growth between the four treatments, so we'll only be using the data from final Day (21).
+
+### Subsetting by more than one criteria
+
+This means we'll need to subset the data using the `filter()` function, just like we did in the plotting section above.
+
+However, this time we need to filter by two characteristics at the same time - Lake *and* Day.
+
+Almost all programming languages have "and" and "or" operators that allow you to combine tests for different criteria.
+
+In R, the "and" operator is the `&` symbol.
+
+### Performing the test
+
+In R, the ANOVA test is performed by using the `aov()` function. When you are using tidyverse code to pipe in the data, `aov()` takes one additional argument: the model formula.
+
+To run most statistical tests in R, you need to specify the model formula using mathematical language. R follows the standard statistical notation and uses the `~` (tilde) sign to indicate "y is predicted by x" as `y ~ x`. For our analysis, Chlorophyll fluorescence is predicted by the nutrient treatment. 
+
+```{r ANOVAtest}
+
+# Perform the ANOVA test and save the output for each lake basin
+
+# ANOVA for Elterwater
+ANOVA_Elter <- AB_data |> 
+	filter(Lake == "Elterwater" & Day == 21) |>
+  aov(formula = lnChlaL ~ Treatment)
+
+# ANOVA for Esthwaite
+ANOVA_Esthw <- AB_data |> 
+	filter(Lake == "Esthwaite" & Day == 21) |>
+  aov(formula = lnChlaL ~ Treatment)
+
+# ANOVA for Windermere North
+ANOVA_WindN <- AB_data |> 
+	filter(Lake == "Windermere_North" & Day == 21) |>
+  aov(formula = lnChlaL ~ Treatment)
+
+# ANOVA for Windermere South
+ANOVA_WindS <- AB_data |> 
+	filter(Lake == "Windermere_South" & Day == 21) |>
+  aov(formula = lnChlaL ~ Treatment)
+
+```
+
+## Examine the ANOVA output
+
+```{r ANOVAtestoutput}
+
+# Examine the output for each lake basin using the summary() function
+summary(ANOVA_Elter)
+summary(ANOVA_Esthw)
+summary(ANOVA_WindN)
+summary(ANOVA_WindS)
+
+```
+
+## Post-hoc Tukey tests
+
+Now we need to perform Post-hoc Tukey tests to figure out which treatments were significantly different from each other.
+
+**IMPORTANT** - We will only perform the Tukey post-hoc test for the lake basins that had a significant result from the ANOVA test.
+
+In R, the Tukey test is performed directly on the saved ANOVA results.
+
+```{r TukeyHSD}
+
+# Perform the Tukey Post Hoc test for the lake basins with significant ANOVA results
+TPH_WindN <- TukeyHSD(ANOVA_WindN)
+TPH_WindS <- TukeyHSD(ANOVA_WindS)
+
+# Examine the output for both lake basins
+TPH_WindN
+TPH_WindS
+
+```
+
+CONGRATULATIONS! YOU'VE FINISHED THE ANALYSIS FOR THE SCIENTIFIC PAPER!
+
+You can stop here if you'd like.
+
+# Optional figure customisations
+
+If you found this activity interesting and fun, and want to keep playing around with the code, here are some additional ways that you can customise your figures.
+
+If you don't like the default colours that ggplot uses, you can change them.
+
+Go back to the code chunk for your final figure. Make a new line and add the command: `scale_colour_manual(values = c("#990000", "blue", "green", "purple")) +`. (I suggest between `labs()` and `theme_minimal()`.)
+
+Then play around and substitute your colours of choice for the values that I included above.
+
+R has a library of colours that be specified using text (e.g., "blue"). You can also specify any colour that you want using hexidecimal colour codes, a six digit number. You can google "R color chart" or "hexadecimal color code chart" to help you find the colours that you want.
+
+Other easy customisations:
+
+- Change the line width by adding `size = x` to the `geom_line()`, where x is a number
+- Change the point symbol by adding `shape = x` to `geom_point()`, where x is a number between 0 and 25. (Google "R point shapes" to find out what shape each number corresponds to.)
+- Change the theme; some interesting ones to try are `theme_classic`, `theme_light`, `theme_dark`, and `theme_void`. 
